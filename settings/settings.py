@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,16 +21,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-jp5pb1nbm2z$5118j*s2ny=4up@cn##1at0()1ke^(ig1#=j@q'
+#SECRET_KEY = 'django-insecure-jp5pb1nbm2z$5118j*s2ny=4up@cn##1at0()1ke^(ig1#=j@q'
+SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key') # PRODUCTION
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
+DEBUG = 'RENDER' not in os.environ # PRODUCTION
 
-''' JUST API ''' # https://devsheet.com/django-invalid-http-host-header-you-may-need-to-add-to-allowed-hosts/
+''' PRODUCTION ''' # https://devsheet.com/django-invalid-http-host-header-you-may-need-to-add-to-allowed-hosts/
 ALLOWED_HOSTS=['localhost',]
 CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = ['http://localhost:5173', ]
+CORS_ORIGIN_WHITELIST = ['http://localhost:5173', 'http://localhost:3000']
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 INSTALLED_APPS = [
@@ -47,12 +51,13 @@ INSTALLED_APPS = [
     'social_django',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'corsheaders', # JUST API
+    'corsheaders', # PRODUCTION
 ]
 
 MIDDLEWARE = [
     'social_django.middleware.SocialAuthExceptionMiddleware', # GOOGLE AUTH
-    'corsheaders.middleware.CorsMiddleware', # JUST API
+    'corsheaders.middleware.CorsMiddleware', # PRODUCTION
+    'whitenoise.middleware.WhiteNoiseMiddleware', # PRODUCTION
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -131,16 +136,21 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+STATIC_URL = 'static/'
+
 ''' SOCIAL AUTH '''
 AUTHENTICATION_BACKENDS = [
     'social_core.backends.google.GoogleOAuth2', # GOOGLE AUTH
     'django.contrib.auth.backends.ModelBackend' # EMAIL AND SOCIAL AUTH
 ]
 
-''' FOR REACT ''' # https://learndjango.com/tutorials/django-static-files-and-templates
-STATIC_URL = 'static/'
-#STATICFILES_DIRS = [ BASE_DIR / 'static' ] # All the folders containing static files, for now we just have 'static/' directory
-#STATIC_ROOT = BASE_DIR / 'staticfiles' # Join all the staticfiles compiled in one destination
+''' PRODUCTION '''
+if not DEBUG:    # Tell Django to copy statics to the `staticfiles` directory
+    # in your application directory on Render.
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    # Turn on WhiteNoise storage backend that takes care of compressing static files
+    # and creating unique names for each version so they can safely be cached forever.
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ''' CURSTOM USER MODEL '''
 AUTH_USER_MODEL = 'user.UserAccount'
