@@ -203,7 +203,7 @@ DJOSER = {
         'user_create': 'user.serializers.UserCreateSerializer',
         'user': 'user.serializers.UserCreateSerializer',
         'user_delete': 'djoser.serializers.UserDeleteSerializer',
-        'current_user': 'accounts.serializers.UserCreateSerializer', # GOOGLE AUTH
+        #'current_user': 'accounts.serializers.UserCreateSerializer', # GOOGLE AUTH
     },
 }
 
