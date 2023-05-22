@@ -185,6 +185,9 @@ SIMPLE_JWT = {
 }
 
 ''' DJOSER SETUP '''
+DOMAIN = 'localhost:3000' # CHANGE HOST FOR EMAIL MESSAGES
+SITE_NAME = 'localhost:3000'
+
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': True, # validate password
